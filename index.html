@@ -14,10 +14,8 @@
     header{display:flex;gap:16px;align-items:flex-start;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap}
     h1{font-size:clamp(16px, 5vw, 20px);margin:0}
     p.lead{margin:0;color:var(--muted);font-size:clamp(14px, 4vw, 16px); line-height:1.2}
-    .controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap;width:100%;justify-content:flex-end}
-    button{background:var(--accent);border:none;padding:8px 12px;border-radius:10px;color:#05203a;font-weight:600;cursor:pointer;font-size:clamp(12px, 3vw, 14px);white-space:nowrap}
-    button.ghost{background:transparent;color:var(--muted);border:1px solid rgba(255,255,255,0.04)}
-    select{background:#1e293b;border:1px solid rgba(255,255,255,0.1);padding:8px;border-radius:8px;color:#e6eef8;font-size:clamp(12px, 3vw, 14px)}
+    .controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap;width:100%;justify-content:flex-end}    
+    button{background:var(--accent);border:none;padding:8px 12px;border-radius:10px;color:#05203a;font-weight:600;cursor:pointer;font-size:clamp(12px, 3vw, 14px)}    select{background:#1e293b;border:1px solid rgba(255,255,255,0.1);padding:8px;border-radius:8px;color:#e6eef8;font-size:clamp(12px, 3vw, 14px)}
     .config{display:flex;gap:8px;align-items:center;font-size:clamp(12px, 3vw, 13px)}
 
     .layout{display:grid;grid-template-columns:1fr;gap:18px}
@@ -63,7 +61,7 @@
     }
 
     /* Better spacing for small screens */
-    @media (max-width: 480px) {
+        @media (max-width: 480px) {
       .app {
         padding: 12px;
       }
@@ -78,6 +76,9 @@
       button {
         flex: 1;
         min-width: 50px;
+        padding: 10px 8px;
+        overflow: hidden;
+        text-overflow: ellipsis;
       }
       .config {
         width: 100%;
@@ -122,24 +123,24 @@ Katja macht Caos / verbreitet Stress
 Jemand kotzt
 Der Comedian ist zum Fremdschämen
 Jemand filmt mit dem Handy
-Jemand hat einen peinlichen Weihnachtspullover an
+Peinlicher Weihnachtspullover
 Jemand singt laut mit
 Jemand verpasst den Bus
 Jemand versucht dich von seinem Hobby zu überzeugen
 Shorty sprengt den zeitlichen Rahmen
-Buzzword-Bingo: "Synergie", "agil", "Out of the box"
-Buzzword-Bingo 2: "New Normal", "Digitalisierung", "Disruption"
+"Synergie",  "Out of the box", "KI"
+"New Normal", "Digitalisierung", "Disruption"
 "Werte Mitarbeiter" a la Alex
-Schnappsdrossel missbraucht All-you-can-drink
-Selbstlob in den Himmel (wg. 111 Jahre)
+All-you-can-drink wird missbraucht
+Selbstlob in den Himmel (111 J.)
 Strolch mit komischen Jackett
 Kalle sucht Anschluss
 Getränk kippt um
-Irgendwer erzählt von der legendären Weihnachtsfeier vor ein paar Jahren
+Legendäre Weihnachtsfeier wird erwähnt
 Jemand erzählt eine Story, die 7 Minuten länger dauert als nötig
-Du wirst in eine Diskussion reingezogen, die gar nicht dein Thema ist
-Du sagst "Stimmt" zu etwas, von dem du keine Ahnung hast
-Buzzword-Bingo 3: "Künstliche Intelligenz", "Transformation", "Veränderung"
+Du landest in 1 Diskussion, die gar nicht dein Thema ist
+Du stimmst zu etwas, von dem du keine Ahnung hast
+"agil","Transformation", "Veränderung"
 Jemand kommt overdressed
 Jemand kommt underdressed
         </textarea>
