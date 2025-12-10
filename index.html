@@ -2,51 +2,100 @@
 <html lang="de">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Kleine Bingo-Webapp</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Bingo 2025</title>
   <style>
     :root{
       --bg:#0f172a; --card:#0b1220; --accent:#60a5fa; --muted:#94a3b8; --win:#34d399;
     }
     *{box-sizing:border-box}
     body{font-family:Inter, system-ui, -apple-system, "Segoe UI", Roboto, 'Helvetica Neue', Arial; margin:0; min-height:100vh; display:flex; align-items:center; justify-content:center; background:linear-gradient(180deg,#07122a 0%, #0b1630 100%); color:#e6eef8}
-    .app{width:100%;max-width:960px;padding:28px}
-    header{display:flex;gap:16px;align-items:center;justify-content:space-between;margin-bottom:18px}
-    h1{font-size:20px;margin:0}
-    p.lead{margin:0;color:var(--muted);font-size:16px; line-height:1.2}
-    .controls{display:flex;gap:10px;align-items:center}
-    button{background:var(--accent);border:none;padding:8px 12px;border-radius:10px;color:#05203a;font-weight:600;cursor:pointer}
+    .app{width:100%;max-width:960px;padding:16px;min-height:100vh;display:flex;flex-direction:column}
+    header{display:flex;gap:16px;align-items:flex-start;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap}
+    h1{font-size:clamp(16px, 5vw, 20px);margin:0}
+    p.lead{margin:0;color:var(--muted);font-size:clamp(14px, 4vw, 16px); line-height:1.2}
+    .controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap;width:100%;justify-content:flex-end}
+    button{background:var(--accent);border:none;padding:8px 12px;border-radius:10px;color:#05203a;font-weight:600;cursor:pointer;font-size:clamp(12px, 3vw, 14px);white-space:nowrap}
     button.ghost{background:transparent;color:var(--muted);border:1px solid rgba(255,255,255,0.04)}
-    .config{display:flex;gap:12px;align-items:center}
+    select{background:#1e293b;border:1px solid rgba(255,255,255,0.1);padding:8px;border-radius:8px;color:#e6eef8;font-size:clamp(12px, 3vw, 14px)}
+    .config{display:flex;gap:8px;align-items:center;font-size:clamp(12px, 3vw, 13px)}
 
-    .layout{display:grid;grid-template-columns:1fr 420px;gap:18px}
-    @media (max-width:900px){.layout{grid-template-columns:1fr;}}
+    .layout{display:grid;grid-template-columns:1fr;gap:18px}
+    @media (min-width:900px){.layout{grid-template-columns:1fr 420px;}}
 
     .panel{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border-radius:12px;padding:14px}
-    textarea{width:100%;height:220px;background:transparent;border:1px dashed rgba(255,255,255,0.04);padding:10px;border-radius:8px;color:inherit}
-    label{font-size:13px;color:var(--muted);display:block;margin-bottom:6px}
+    textarea{width:100%;height:220px;background:transparent;border:1px dashed rgba(255,255,255,0.04);padding:10px;border-radius:8px;color:inherit;font-family:inherit;font-size:clamp(12px, 3vw, 13px)}
+    label{font-size:clamp(11px, 3vw, 13px);color:var(--muted);display:block;margin-bottom:6px}
 
-    .grid-wrap{display:grid;place-items:center}
-    .bingo-grid{display:grid;gap:8px;width:100%;max-width:640px}
-    .cell{aspect-ratio:1/1;display:flex;align-items:center;justify-content:center;padding:6px;border-radius:8px;background:#1e293b;color:#e2e8f0;cursor:pointer;user-select:none;border:1px solid rgba(255,255,255,0.03);text-align:center;font-size:13px}
+    .grid-wrap{display:grid;place-items:center;width:100%}
+    .bingo-grid{display:grid;gap:8px;width:100%;max-width:640px;margin:0 auto}
+    .cell{aspect-ratio:1/1;display:flex;align-items:center;justify-content:center;padding:6px;border-radius:8px;background:#1e293b;color:#e2e8f0;cursor:pointer;user-select:none;border:1px solid rgba(255,255,255,0.03);text-align:center;font-size:clamp(10px, 2.5vw, 13px);line-height:1.3;word-break:break-word}
     .cell.marked{background:linear-gradient(180deg,var(--accent),#2b6fbf);color:#021528;box-shadow:0 6px 18px rgba(9,105,218,0.18);transform:scale(0.99)}
     .cell.free{background:linear-gradient(180deg,var(--win),#10b981);color:#052018;font-weight:700}
-    .meta{display:flex;gap:12px;align-items:center;margin-top:12px}
-    .meta .stat{background:rgba(255,255,255,0.02);padding:8px 10px;border-radius:8px;font-weight:600}
-    .footer-note{color:var(--muted);font-size:12px;margin-top:8px}
+    .meta{display:flex;gap:12px;align-items:center;margin-top:12px;flex-wrap:wrap}
+    .meta .stat{background:rgba(255,255,255,0.02);padding:8px 10px;border-radius:8px;font-weight:600;font-size:clamp(12px, 3vw, 14px)}
+    .footer-note{color:var(--muted);font-size:clamp(11px, 3vw, 12px);margin-top:8px}
 
-    .bingo-win{padding:10px;border-radius:8px;background:linear-gradient(90deg,#34d399, #60a5fa);color:#052018;font-weight:800;margin-top:12px}
+    .bingo-win{padding:10px;border-radius:8px;background:linear-gradient(90deg,#34d399, #60a5fa);color:#052018;font-weight:800;margin-top:12px;font-size:clamp(14px, 4vw, 18px);text-align:center}
 
     /* small animations */
     .cell{transition:transform .12s ease, box-shadow .12s ease, background .12s ease}
-    .cell:active{transform:scale(.98)}
+    .cell:active{transform:scale(.95)}
+
+    /* Touch-friendly adjustments */
+    @media (hover: none) and (pointer: coarse) {
+      .cell {
+        min-height: 50px;
+        min-width: 50px;
+      }
+      button {
+        padding: 10px 14px;
+        min-height: 44px;
+      }
+      select {
+        min-height: 44px;
+      }
+    }
+
+    /* Prevent zoom on input focus (iOS) */
+    input, select, textarea {
+      font-size: 16px;
+    }
+
+    /* Better spacing for small screens */
+    @media (max-width: 480px) {
+      .app {
+        padding: 12px;
+      }
+      header {
+        flex-direction: column;
+        gap: 12px;
+      }
+      .controls {
+        width: 100%;
+        gap: 6px;
+      }
+      button {
+        flex: 1;
+        min-width: 50px;
+      }
+      .config {
+        width: 100%;
+      }
+      .panel {
+        padding: 12px;
+      }
+      .bingo-grid {
+        gap: 6px;
+      }
+    }
   </style>
 </head>
 <body>
   <div class="app">
     <header>
       <div>
-        <h1>Kleine Bingo-Webapp</h1>
+        <h1>Bingo Weihnachtsfeier 2025</h1>
         <p class="lead">Wörter einfügen, mischen und per Klick markieren.</p>
       </div>
       <div class="controls">
@@ -66,33 +115,36 @@
     <main class="layout">
       <section class="panel">
         <label for="words">Wortliste (eine Zeile = ein Wort). Mindestens <span id="minWords">25</span> für 5×5.</label>
-        <textarea id="words">Apfel
-Banane
-Kaffee
-Auto
-Haus
-Hund
-Katze
-Blume
-Computer
-Buch
-Stift
-Lampe
-Fenster
-Baum
-Tisch
-Stuhl
-Uhr
-Telefon
-Schuhe
-Jacke
-Regen
-Sonne
-Mond
-Stern
-Musik</textarea>
+        <textarea id="words">
+"Ohne euch wäre das alles nicht möglich!"
+Katja macht Caos / verbreitet Stress
+"Wir sind eine Familie/Gruppe/etc."
+Jemand kotzt
+Der Comedian ist zum Fremdschämen
+Jemand filmt mit dem Handy
+Jemand hat einen peinlichen Weihnachtspullover an
+Jemand singt laut mit
+Jemand verpasst den Bus
+Jemand versucht dich von seinem Hobby zu überzeugen
+Shorty sprengt den zeitlichen Rahmen
+Buzzword-Bingo: "Synergie", "agil", "Out of the box"
+Buzzword-Bingo 2: "New Normal", "Digitalisierung", "Disruption"
+"Werte Mitarbeiter" a la Alex
+Schnappsdrossel missbraucht All-you-can-drink
+Selbstlob in den Himmel (wg. 111 Jahre)
+Strolch mit komischen Jackett
+Kalle sucht Anschluss
+Getränk kippt um
+Irgendwer erzählt von der legendären Weihnachtsfeier vor ein paar Jahren
+Jemand erzählt eine Story, die 7 Minuten länger dauert als nötig
+Du wirst in eine Diskussion reingezogen, die gar nicht dein Thema ist
+Du sagst "Stimmt" zu etwas, von dem du keine Ahnung hast
+Buzzword-Bingo 3: "Künstliche Intelligenz", "Transformation", "Veränderung"
+Jemand kommt overdressed
+Jemand kommt underdressed
+        </textarea>
 
-        <div style="display:flex;gap:8px;margin-top:8px">
+        <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
           <button id="apply">Anwenden</button>
           <button id="fillRandom" class="ghost">Mit Zufallswörtern auffüllen</button>
         </div>
@@ -116,7 +168,7 @@ Musik</textarea>
   </div>
 
   <script>
-    // Utility: Fisher-Yates shuffle
+    // ...existing code...
     function shuffle(array){
       for(let i=array.length-1;i>0;i--){
         const j=Math.floor(Math.random()*(i+1));
@@ -137,7 +189,6 @@ Musik</textarea>
     const minWordsEl = document.getElementById('minWords');
     const winnerEl = document.getElementById('winner');
 
-    // small pool of filler words
     const filler = ['Pizza','Eis','Film','Programm','Code','Party','Urlaub','Zug','Flug','See','Berg','Brille','Schokolade','Tee','Rad','Fahrrad','Boot','Kino','Museum','Garten','Karte','Keks','Rezept','Chef','Chefkoch','Note','Test','Projekt','Meeting','Email'];
 
     function getWordsArray(){
@@ -165,11 +216,9 @@ Musik</textarea>
       words = ensureEnough(words, needed);
       words = shuffle(words).slice(0,needed);
 
-      // create grid style
       gridEl.style.gridTemplateColumns = `repeat(${n}, 1fr)`;
       gridEl.innerHTML = '';
 
-      // optional center free for odd-sized grids
       const centerIndex = Math.floor(needed/2);
 
       words.forEach((w,i)=>{
@@ -183,7 +232,6 @@ Musik</textarea>
           updateStats();
         });
 
-        // if 5x5 or odd grid, mark center as FREE
         if(n%2===1 && i===centerIndex){
           cell.classList.add('free','marked');
           cell.textContent = 'FREE';
@@ -205,7 +253,6 @@ Musik</textarea>
     function checkWin(cells){
       const n = Number(sizeEl.value);
       if(cells.length===0) return;
-      // build boolean matrix: true if marked
       const m = [];
       for(let r=0;r<n;r++){
         const row = [];
@@ -216,24 +263,19 @@ Musik</textarea>
         m.push(row);
       }
 
-      // check rows, cols, diags
       let bingo=false;
 
-      // rows
       for(let r=0;r<n;r++){
         if(m[r].every(Boolean)) bingo=true;
       }
-      // cols
       for(let c=0;c<n;c++){
         let ok=true;
         for(let r=0;r<n;r++){ if(!m[r][c]) ok=false; }
         if(ok) bingo=true;
       }
-      // diag TL-BR
       let okDiag=true;
       for(let i=0;i<n;i++) if(!m[i][i]) okDiag=false;
       if(okDiag) bingo=true;
-      // diag BL-TR
       okDiag=true;
       for(let i=0;i<n;i++) if(!m[n-1-i][i]) okDiag=false;
       if(okDiag) bingo=true;
@@ -245,12 +287,10 @@ Musik</textarea>
       }
     }
 
-    // actions
     shuffleBtn.addEventListener('click', buildGrid);
     sizeEl.addEventListener('change', buildGrid);
     applyBtn.addEventListener('click', buildGrid);
     resetBtn.addEventListener('click', ()=>{
-      // unmark all except FREE
       document.querySelectorAll('.cell').forEach(c=>{ if(!c.classList.contains('free')) c.classList.remove('marked'); });
       updateStats();
     });
@@ -264,19 +304,15 @@ Musik</textarea>
       buildGrid();
     });
 
-    // save words to localStorage
-wordsEl.addEventListener('input', ()=>{
-  localStorage.setItem('bingoWords', wordsEl.value);
-});
+    wordsEl.addEventListener('input', ()=>{
+      localStorage.setItem('bingoWords', wordsEl.value);
+    });
 
-// load saved words
-const saved = localStorage.getItem('bingoWords');
-if(saved){ wordsEl.value = saved; }
+    const saved = localStorage.getItem('bingoWords');
+    if(saved){ wordsEl.value = saved; }
 
-// init
     buildGrid();
 
-    // keyboard accessibility: toggle with Enter/Space
     gridEl.addEventListener('keydown', (ev)=>{
       if(ev.key==='Enter' || ev.key===' '){
         ev.preventDefault();
