@@ -1,0 +1,289 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Kleine Bingo-Webapp</title>
+  <style>
+    :root{
+      --bg:#0f172a; --card:#0b1220; --accent:#60a5fa; --muted:#94a3b8; --win:#34d399;
+    }
+    *{box-sizing:border-box}
+    body{font-family:Inter, system-ui, -apple-system, "Segoe UI", Roboto, 'Helvetica Neue', Arial; margin:0; min-height:100vh; display:flex; align-items:center; justify-content:center; background:linear-gradient(180deg,#07122a 0%, #0b1630 100%); color:#e6eef8}
+    .app{width:100%;max-width:960px;padding:28px}
+    header{display:flex;gap:16px;align-items:center;justify-content:space-between;margin-bottom:18px}
+    h1{font-size:20px;margin:0}
+    p.lead{margin:0;color:var(--muted);font-size:16px; line-height:1.2}
+    .controls{display:flex;gap:10px;align-items:center}
+    button{background:var(--accent);border:none;padding:8px 12px;border-radius:10px;color:#05203a;font-weight:600;cursor:pointer}
+    button.ghost{background:transparent;color:var(--muted);border:1px solid rgba(255,255,255,0.04)}
+    .config{display:flex;gap:12px;align-items:center}
+
+    .layout{display:grid;grid-template-columns:1fr 420px;gap:18px}
+    @media (max-width:900px){.layout{grid-template-columns:1fr;}}
+
+    .panel{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border-radius:12px;padding:14px}
+    textarea{width:100%;height:220px;background:transparent;border:1px dashed rgba(255,255,255,0.04);padding:10px;border-radius:8px;color:inherit}
+    label{font-size:13px;color:var(--muted);display:block;margin-bottom:6px}
+
+    .grid-wrap{display:grid;place-items:center}
+    .bingo-grid{display:grid;gap:8px;width:100%;max-width:640px}
+    .cell{aspect-ratio:1/1;display:flex;align-items:center;justify-content:center;padding:6px;border-radius:8px;background:#1e293b;color:#e2e8f0;cursor:pointer;user-select:none;border:1px solid rgba(255,255,255,0.03);text-align:center;font-size:13px}
+    .cell.marked{background:linear-gradient(180deg,var(--accent),#2b6fbf);color:#021528;box-shadow:0 6px 18px rgba(9,105,218,0.18);transform:scale(0.99)}
+    .cell.free{background:linear-gradient(180deg,var(--win),#10b981);color:#052018;font-weight:700}
+    .meta{display:flex;gap:12px;align-items:center;margin-top:12px}
+    .meta .stat{background:rgba(255,255,255,0.02);padding:8px 10px;border-radius:8px;font-weight:600}
+    .footer-note{color:var(--muted);font-size:12px;margin-top:8px}
+
+    .bingo-win{padding:10px;border-radius:8px;background:linear-gradient(90deg,#34d399, #60a5fa);color:#052018;font-weight:800;margin-top:12px}
+
+    /* small animations */
+    .cell{transition:transform .12s ease, box-shadow .12s ease, background .12s ease}
+    .cell:active{transform:scale(.98)}
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <div>
+        <h1>Kleine Bingo-Webapp</h1>
+        <p class="lead">Wörter einfügen, mischen und per Klick markieren.</p>
+      </div>
+      <div class="controls">
+        <div class="config">
+          <label for="size">Größe</label>
+          <select id="size">
+            <option value="3">3 × 3</option>
+            <option value="4">4 × 4</option>
+            <option value="5" selected>5 × 5</option>
+          </select>
+        </div>
+        <button id="shuffle">Mischen</button>
+        <button id="reset" class="ghost">Zurücksetzen</button>
+      </div>
+    </header>
+
+    <main class="layout">
+      <section class="panel">
+        <label for="words">Wortliste (eine Zeile = ein Wort). Mindestens <span id="minWords">25</span> für 5×5.</label>
+        <textarea id="words">Apfel
+Banane
+Kaffee
+Auto
+Haus
+Hund
+Katze
+Blume
+Computer
+Buch
+Stift
+Lampe
+Fenster
+Baum
+Tisch
+Stuhl
+Uhr
+Telefon
+Schuhe
+Jacke
+Regen
+Sonne
+Mond
+Stern
+Musik</textarea>
+
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <button id="apply">Anwenden</button>
+          <button id="fillRandom" class="ghost">Mit Zufallswörtern auffüllen</button>
+        </div>
+
+        <div class="footer-note">Tipp: Füge eigene Wörter ein, klick auf "Mischen" und los geht's.</div>
+      </section>
+
+      <aside class="panel">
+        <div class="grid-wrap">
+          <div id="grid" class="bingo-grid" aria-live="polite"></div>
+        </div>
+
+        <div class="meta">
+          <div class="stat">Markiert: <span id="markedCount">0</span></div>
+          <div class="stat">Größe: <span id="gridSize">5×5</span></div>
+        </div>
+
+        <div id="winner" style="display:none" class="bingo-win">BINGO! 🎉</div>
+      </aside>
+    </main>
+  </div>
+
+  <script>
+    // Utility: Fisher-Yates shuffle
+    function shuffle(array){
+      for(let i=array.length-1;i>0;i--){
+        const j=Math.floor(Math.random()*(i+1));
+        [array[i],array[j]]=[array[j],array[i]];
+      }
+      return array;
+    }
+
+    const wordsEl = document.getElementById('words');
+    const gridEl = document.getElementById('grid');
+    const sizeEl = document.getElementById('size');
+    const shuffleBtn = document.getElementById('shuffle');
+    const resetBtn = document.getElementById('reset');
+    const applyBtn = document.getElementById('apply');
+    const fillRandomBtn = document.getElementById('fillRandom');
+    const markedCountEl = document.getElementById('markedCount');
+    const gridSizeEl = document.getElementById('gridSize');
+    const minWordsEl = document.getElementById('minWords');
+    const winnerEl = document.getElementById('winner');
+
+    // small pool of filler words
+    const filler = ['Pizza','Eis','Film','Programm','Code','Party','Urlaub','Zug','Flug','See','Berg','Brille','Schokolade','Tee','Rad','Fahrrad','Boot','Kino','Museum','Garten','Karte','Keks','Rezept','Chef','Chefkoch','Note','Test','Projekt','Meeting','Email'];
+
+    function getWordsArray(){
+      return wordsEl.value.split('\n').map(s=>s.trim()).filter(Boolean);
+    }
+
+    function ensureEnough(words,count){
+      const out = [...words];
+      let i=0;
+      while(out.length<count){
+        out.push(filler[i % filler.length] + (i>filler.length? ' '+Math.floor(i/filler.length):''));
+        i++;
+      }
+      return out;
+    }
+
+    function buildGrid(){
+      const n = Number(sizeEl.value);
+      const needed = n*n;
+      minWordsEl.textContent = needed;
+      gridSizeEl.textContent = n + '×' + n;
+      winnerEl.style.display = 'none';
+
+      let words = getWordsArray();
+      words = ensureEnough(words, needed);
+      words = shuffle(words).slice(0,needed);
+
+      // create grid style
+      gridEl.style.gridTemplateColumns = `repeat(${n}, 1fr)`;
+      gridEl.innerHTML = '';
+
+      // optional center free for odd-sized grids
+      const centerIndex = Math.floor(needed/2);
+
+      words.forEach((w,i)=>{
+        const cell = document.createElement('button');
+        cell.className = 'cell';
+        cell.type = 'button';
+        cell.dataset.index = i;
+        cell.textContent = w;
+        cell.addEventListener('click', ()=>{
+          cell.classList.toggle('marked');
+          updateStats();
+        });
+
+        // if 5x5 or odd grid, mark center as FREE
+        if(n%2===1 && i===centerIndex){
+          cell.classList.add('free','marked');
+          cell.textContent = 'FREE';
+        }
+
+        gridEl.appendChild(cell);
+      });
+
+      updateStats();
+    }
+
+    function updateStats(){
+      const cells = Array.from(gridEl.querySelectorAll('.cell'));
+      const marked = cells.filter(c=>c.classList.contains('marked')).length;
+      markedCountEl.textContent = marked;
+      checkWin(cells);
+    }
+
+    function checkWin(cells){
+      const n = Number(sizeEl.value);
+      if(cells.length===0) return;
+      // build boolean matrix: true if marked
+      const m = [];
+      for(let r=0;r<n;r++){
+        const row = [];
+        for(let c=0;c<n;c++){
+          const idx = r*n + c;
+          row.push(cells[idx].classList.contains('marked'));
+        }
+        m.push(row);
+      }
+
+      // check rows, cols, diags
+      let bingo=false;
+
+      // rows
+      for(let r=0;r<n;r++){
+        if(m[r].every(Boolean)) bingo=true;
+      }
+      // cols
+      for(let c=0;c<n;c++){
+        let ok=true;
+        for(let r=0;r<n;r++){ if(!m[r][c]) ok=false; }
+        if(ok) bingo=true;
+      }
+      // diag TL-BR
+      let okDiag=true;
+      for(let i=0;i<n;i++) if(!m[i][i]) okDiag=false;
+      if(okDiag) bingo=true;
+      // diag BL-TR
+      okDiag=true;
+      for(let i=0;i<n;i++) if(!m[n-1-i][i]) okDiag=false;
+      if(okDiag) bingo=true;
+
+      if(bingo){
+        winnerEl.style.display = 'block';
+      } else {
+        winnerEl.style.display = 'none';
+      }
+    }
+
+    // actions
+    shuffleBtn.addEventListener('click', buildGrid);
+    sizeEl.addEventListener('change', buildGrid);
+    applyBtn.addEventListener('click', buildGrid);
+    resetBtn.addEventListener('click', ()=>{
+      // unmark all except FREE
+      document.querySelectorAll('.cell').forEach(c=>{ if(!c.classList.contains('free')) c.classList.remove('marked'); });
+      updateStats();
+    });
+
+    fillRandomBtn.addEventListener('click', ()=>{
+      const n = Number(sizeEl.value);
+      const needed = n*n;
+      const cur = getWordsArray();
+      const filled = ensureEnough(cur, needed);
+      wordsEl.value = filled.slice(0, Math.max(needed, cur.length)).join('\n');
+      buildGrid();
+    });
+
+    // save words to localStorage
+wordsEl.addEventListener('input', ()=>{
+  localStorage.setItem('bingoWords', wordsEl.value);
+});
+
+// load saved words
+const saved = localStorage.getItem('bingoWords');
+if(saved){ wordsEl.value = saved; }
+
+// init
+    buildGrid();
+
+    // keyboard accessibility: toggle with Enter/Space
+    gridEl.addEventListener('keydown', (ev)=>{
+      if(ev.key==='Enter' || ev.key===' '){
+        ev.preventDefault();
+        const t = ev.target;
+        if(t.classList && t.classList.contains('cell')) t.click();
+      }
+    });
+  </script>
+</body>
+</html>
