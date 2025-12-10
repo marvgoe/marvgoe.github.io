@@ -30,6 +30,7 @@
     .cell{aspect-ratio:1/1;display:flex;align-items:center;justify-content:center;padding:6px;border-radius:8px;background:#1e293b;color:#e2e8f0;cursor:pointer;user-select:none;border:1px solid rgba(255,255,255,0.03);text-align:center;font-size:clamp(10px, 2.5vw, 13px);line-height:1.3;word-break:break-word}
     .cell.marked{background:linear-gradient(180deg,var(--accent),#2b6fbf);color:#021528;box-shadow:0 6px 18px rgba(9,105,218,0.18);transform:scale(0.99)}
     .cell.free{background:linear-gradient(180deg,var(--win),#10b981);color:#052018;font-weight:700}
+    .cell.bingo{background:linear-gradient(90deg,#34d399, #60a5fa);color:#052018;box-shadow:0 0 20px rgba(98, 7, 202, 0.6);font-weight:700}
     .meta{display:flex;gap:12px;align-items:center;margin-top:12px;flex-wrap:wrap}
     .meta .stat{background:rgba(255,255,255,0.02);padding:8px 10px;border-radius:8px;font-weight:600;font-size:clamp(12px, 3vw, 14px)}
     .footer-note{color:var(--muted);font-size:clamp(11px, 3vw, 12px);margin-top:8px}
@@ -153,6 +154,7 @@ Jemand kommt underdressed
         <div class="footer-note">Tipp: Füge eigene Wörter ein, klick auf "Mischen" und los geht's.</div>
       </section>
 
+        <div id="winner" style="display:none" class="bingo-win"> <span id="bingoCount">1</span> BINGO! 🎉</div>
       <aside class="panel">
         <div class="grid-wrap">
           <div id="grid" class="bingo-grid" aria-live="polite"></div>
@@ -162,8 +164,6 @@ Jemand kommt underdressed
           <div class="stat">Markiert: <span id="markedCount">0</span></div>
           <div class="stat">Größe: <span id="gridSize">5×5</span></div>
         </div>
-
-        <div id="winner" style="display:none" class="bingo-win">BINGO! 🎉</div>
       </aside>
     </main>
   </div>
@@ -265,23 +265,49 @@ Jemand kommt underdressed
       }
 
       let bingo=false;
+      let bingoCount = 0;
+      const bingoIndices = new Set();
 
       for(let r=0;r<n;r++){
-        if(m[r].every(Boolean)) bingo=true;
+        if(m[r].every(Boolean)) {
+          bingo=true;
+          bingoCount++;
+          for(let c=0;c<n;c++) bingoIndices.add(r*n + c);
+        }
       }
       for(let c=0;c<n;c++){
         let ok=true;
         for(let r=0;r<n;r++){ if(!m[r][c]) ok=false; }
-        if(ok) bingo=true;
+        if(ok) {
+          bingo=true;
+          bingoCount++;
+          for(let r=0;r<n;r++) bingoIndices.add(r*n + c);
+        }
       }
       let okDiag=true;
       for(let i=0;i<n;i++) if(!m[i][i]) okDiag=false;
-      if(okDiag) bingo=true;
+      if(okDiag) {
+        bingo=true;
+        bingoCount++;
+        for(let i=0;i<n;i++) bingoIndices.add(i*n + i);
+      }
       okDiag=true;
       for(let i=0;i<n;i++) if(!m[n-1-i][i]) okDiag=false;
-      if(okDiag) bingo=true;
+      if(okDiag) {
+        bingo=true;
+        bingoCount++;
+        for(let i=0;i<n;i++) bingoIndices.add((n-1-i)*n + i);
+      }
+
+      cells.forEach((cell, idx) => {
+        cell.classList.remove('bingo');
+        if(bingo && bingoIndices.has(idx)) {
+          cell.classList.add('bingo');
+        }
+      });
 
       if(bingo){
+        document.getElementById('bingoCount').textContent = bingoCount;
         winnerEl.style.display = 'block';
       } else {
         winnerEl.style.display = 'none';
